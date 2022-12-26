@@ -5,7 +5,7 @@ use rocket::http::{Status, ContentType};
 #[test]
 fn create_site_minimal() {
     let client = Client::tracked(rocket()).expect("valid rocket instance");
-    let mut response = client.post("/site")
+    let response = client.post("/site")
         .header(ContentType::JSON)
         .body(r#"{ "name": "1000 Washington Street" }"#)
         .dispatch();

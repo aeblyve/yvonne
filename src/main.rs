@@ -1,12 +1,12 @@
 #[macro_use] extern crate rocket;
 
-use rocket_db_pools::{Database, Connection};
-use rocket_db_pools::sqlx::{self, Row};
+use rocket_db_pools::{Database};
+use rocket_db_pools::sqlx::{self};
 
-use rocket::{Rocket, Build, futures, Phase};
+use rocket::{Rocket, Build};
 use rocket::fairing::{self, AdHoc};
-use rocket::response::status::Created;
-use rocket::serde::{Serialize, Deserialize, json::Json};
+
+
 
 mod site;
 #[cfg(test)] mod tests;

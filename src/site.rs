@@ -1,9 +1,9 @@
-use rocket_db_pools::{Database, Connection};
+use rocket_db_pools::{Connection};
 use rocket_db_pools::sqlx::{self, Row};
 use crate::rocket::futures::TryFutureExt;
 
-use rocket::{Rocket, Build, futures};
-use rocket::fairing::{self, AdHoc};
+
+
 use rocket::response::status::Created;
 use rocket::serde::{Serialize, Deserialize, json::Json};
 use crate::Db;
