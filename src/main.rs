@@ -1,15 +1,15 @@
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
 
-use rocket_db_pools::{Database};
 use rocket_db_pools::sqlx::{self};
+use rocket_db_pools::Database;
 
-use rocket::{Rocket, Build};
 use rocket::fairing::{self, AdHoc};
-
-
+use rocket::{Build, Rocket};
 
 mod site;
-#[cfg(test)] mod tests;
+#[cfg(test)]
+mod tests;
 
 #[cfg(test)]
 #[derive(Database)]
@@ -43,7 +43,7 @@ async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
                 error!("Failed to initialize SQLx database: {}", e);
                 Err(rocket)
             }
-        }
+        },
         None => Err(rocket),
     }
 }

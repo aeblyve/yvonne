@@ -1,11 +1,12 @@
 pub(crate) use super::rocket;
+use rocket::http::{ContentType, Status};
 use rocket::local::blocking::Client;
-use rocket::http::{Status, ContentType};
 
 #[test]
 fn create_site_minimal() {
     let client = Client::tracked(rocket()).expect("valid rocket instance");
-    let response = client.post("/site")
+    let response = client
+        .post("/site")
         .header(ContentType::JSON)
         .body(r#"{ "name": "1000 Washington Street" }"#)
         .dispatch();
@@ -14,6 +15,4 @@ fn create_site_minimal() {
 }
 
 #[test]
-fn create_site_maximal() {
-
-}
+fn create_site_maximal() {}
