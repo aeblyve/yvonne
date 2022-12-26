@@ -1,24 +1,25 @@
 #[macro_use] extern crate rocket;
 
-// TODO Expand on post types.
-// TODO // Per-post password protection is a bit excessive. What we need is a
-// generalizable notion of "zones" - users with certain permissions can see
-// posts by zone. These are seperate from tags.
-
 use rocket_db_pools::{Database, Connection};
 use rocket_db_pools::sqlx::{self, Row};
 
-
-use rocket::{Rocket, Build, futures};
+use rocket::{Rocket, Build, futures, Phase};
 use rocket::fairing::{self, AdHoc};
 use rocket::response::status::Created;
 use rocket::serde::{Serialize, Deserialize, json::Json};
 
-type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
+mod site;
+#[cfg(test)] mod tests;
 
+#[cfg(test)]
+#[derive(Database)]
+#[database("testdb")] // an in-memory db
+pub struct Db(sqlx::SqlitePool);
+
+#[cfg(not(test))]
 #[derive(Database)]
 #[database("db")]
-struct Db(sqlx::SqlitePool);
+pub struct Db(sqlx::SqlitePool);
 
 #[get("/")]
 fn index() -> &'static str {
@@ -31,6 +32,7 @@ fn rocket() -> _ {
         .attach(Db::init())
         .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
         .mount("/", routes![index])
+        .mount("/site", routes![site::create])
 }
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
