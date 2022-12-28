@@ -4,5 +4,4 @@ CREATE TABLE IF NOT EXISTS item (
   name TEXT NOT NULL UNIQUE,
   note TEXT,
   photo BLOB,
-  FOREIGN KEY(container_id) REFERENCES container(id)
 )
