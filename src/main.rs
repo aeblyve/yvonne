@@ -32,7 +32,7 @@ fn rocket() -> _ {
         .attach(Db::init())
         .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
         .mount("/", routes![index])
-        .mount("/site", routes![site::create])
+        .mount("/site", routes![site::create, site::read, site::delete])
 }
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
