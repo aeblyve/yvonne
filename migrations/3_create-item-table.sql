@@ -3,5 +3,5 @@ CREATE TABLE IF NOT EXISTS item (
   container_id INTEGER,
   name TEXT NOT NULL UNIQUE,
   note TEXT,
-  photo BLOB,
+  photo BLOB
 )

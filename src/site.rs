@@ -8,6 +8,7 @@ use rocket::serde::{json::Json, Deserialize, Serialize};
 
 type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
 
+/// A physical location, e.g. a warehouse
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct Site {

@@ -7,6 +7,7 @@ use rocket_db_pools::Database;
 use rocket::fairing::{self, AdHoc};
 use rocket::{Build, Rocket};
 
+mod container;
 mod site;
 #[cfg(test)]
 mod tests;
@@ -33,6 +34,10 @@ fn rocket() -> _ {
         .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
         .mount("/", routes![index])
         .mount("/site", routes![site::create, site::read, site::delete])
+        .mount(
+            "/container",
+            routes![container::create, container::read, container::delete],
+        )
 }
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
