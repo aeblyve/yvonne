@@ -1,4 +1,5 @@
 use crate::container::Container;
+use crate::item::Item;
 use crate::site::Site;
 
 pub(crate) use super::rocket;
@@ -108,4 +109,64 @@ fn test_container() {
 
     let response = client.get("/container/1").dispatch();
     assert_eq!(response.status(), Status::NotFound);
+}
+
+#[test]
+fn test_item() {
+    // test simple request
+    let client = Client::tracked(rocket()).expect("valid rocket instance");
+    let response = client
+        .post("/item")
+        .header(ContentType::JSON)
+        .body(r#"{ "name": "M3 Bolt, 20mm" }"#)
+        .dispatch();
+
+    assert_eq!(response.status(), Status::Created);
+    assert_eq!(response.content_type(), Some(ContentType::JSON));
+    let item: Item = response.into_json().expect("Valid response");
+    assert_eq!(item.id, None);
+    assert_eq!(item.name, "M3 Bolt, 20mm");
+    assert_eq!(item.note, None);
+    assert_eq!(item.photo, None);
+
+    let response = client.get("/item/1").dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(response.content_type(), Some(ContentType::JSON));
+    let item: Item = response.into_json().expect("Valid response");
+    assert_eq!(item.id, None);
+    assert_eq!(item.name, "M3 Bolt, 20mm");
+    assert_eq!(item.note, None);
+    assert_eq!(item.photo, None);
+
+    let response = client.delete("/item/1").dispatch();
+    assert_eq!(response.status(), Status::Ok);
+
+    let response = client.get("/item/1").dispatch();
+    assert_eq!(response.status(), Status::NotFound);
+
+    // test optional fields
+    let response = client
+        .post("/item")
+        .header(ContentType::JSON)
+        .body(r#"{ "name": "M3 Bolt, 20mm", "note": "Titanium", "photo": [0, 1, 2, 3, 4] }"#)
+        .dispatch();
+
+    assert_eq!(response.status(), Status::Created);
+    assert_eq!(response.content_type(), Some(ContentType::JSON));
+    let item: Item = response.into_json().expect("Valid response");
+    assert_eq!(item.id, None);
+    assert_eq!(item.name, "M3 Bolt, 20mm");
+    assert_eq!(item.note, Some("Titanium".to_string()));
+    assert_eq!(item.photo, Some([0, 1, 2, 3, 4].into()));
+
+    let response = client.get("/item/2").dispatch();
+
+    assert_eq!(response.status(), Status::Ok);
+    assert_eq!(response.content_type(), Some(ContentType::JSON));
+    let item: Item = response.into_json().expect("Valid response");
+    assert_eq!(item.id, None);
+    assert_eq!(item.name, "M3 Bolt, 20mm");
+    assert_eq!(item.note, Some("Titanium".to_string()));
+    assert_eq!(item.photo, Some([0, 1, 2, 3, 4].into()));
 }

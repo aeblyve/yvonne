@@ -8,6 +8,7 @@ use rocket::fairing::{self, AdHoc};
 use rocket::{Build, Rocket};
 
 mod container;
+mod item;
 mod site;
 #[cfg(test)]
 mod tests;
@@ -38,6 +39,7 @@ fn rocket() -> _ {
             "/container",
             routes![container::create, container::read, container::delete],
         )
+        .mount("/item", routes![item::create, item::read, item::delete])
 }
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
