@@ -42,6 +42,14 @@ fn rocket() -> _ {
             routes![container::create, container::read, container::delete],
         )
         .mount("/", routes![item::create, item::read, item::delete])
+        .mount(
+            "/",
+            routes![
+                item_location::create,
+                item_location::read,
+                item_location::delete
+            ],
+        )
 }
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
