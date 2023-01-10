@@ -22,7 +22,7 @@ pub struct Container {
     pub photo: Option<Vec<u8>>,
 }
 
-#[post("/", data = "<container>")]
+#[post("/container", data = "<container>")]
 pub async fn create(
     mut db: Connection<Db>,
     container: Json<Container>,
@@ -40,7 +40,7 @@ pub async fn create(
     Ok(Created::new("/").body(container))
 }
 
-#[get("/<id>")]
+#[get("/container/<id>")]
 pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<Container>> {
     sqlx::query!(
         "SELECT id, site_id, name, note, photo FROM container WHERE id = ?",
@@ -60,7 +60,7 @@ pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<Container>> {
     .ok()
 }
 
-#[delete("/<id>")]
+#[delete("/container/<id>")]
 pub async fn delete(mut db: Connection<Db>, id: i64) -> Result<Option<()>> {
     let result = sqlx::query!("DELETE FROM container WHERE id = ?", id)
         .execute(&mut *db)

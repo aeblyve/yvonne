@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS item_map (
+CREATE TABLE IF NOT EXISTS item_location (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   item_id INTEGER,
   container_id INTEGER,

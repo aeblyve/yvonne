@@ -21,7 +21,7 @@ pub struct Item {
     pub photo: Option<Vec<u8>>,
 }
 
-#[post("/", data = "<item>")]
+#[post("/item", data = "<item>")]
 pub async fn create(mut db: Connection<Db>, item: Json<Item>) -> Result<Created<Json<Item>>> {
     sqlx::query!(
         "INSERT INTO item (name, note, photo) VALUES (?, ?, ?)",
@@ -35,7 +35,7 @@ pub async fn create(mut db: Connection<Db>, item: Json<Item>) -> Result<Created<
     Ok(Created::new("/").body(item))
 }
 
-#[get("/<id>")]
+#[get("/item/<id>")]
 pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<Item>> {
     sqlx::query!("SELECT id,name, note, photo FROM item WHERE id = ?", id)
         .fetch_one(&mut *db)
@@ -51,7 +51,7 @@ pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<Item>> {
         .ok()
 }
 
-#[delete("/<id>")]
+#[delete("/item/<id>")]
 pub async fn delete(mut db: Connection<Db>, id: i64) -> Result<Option<()>> {
     let result = sqlx::query!("DELETE FROM item WHERE id = ?", id)
         .execute(&mut *db)

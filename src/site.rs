@@ -21,7 +21,7 @@ pub struct Site {
     pub photo: Option<Vec<u8>>,
 }
 
-#[post("/", data = "<site>")]
+#[post("/site", data = "<site>")]
 pub async fn create(mut db: Connection<Db>, site: Json<Site>) -> Result<Created<Json<Site>>> {
     println!("{:?}", site);
     sqlx::query!(
@@ -36,7 +36,7 @@ pub async fn create(mut db: Connection<Db>, site: Json<Site>) -> Result<Created<
     Ok(Created::new("/").body(site))
 }
 
-#[get("/<id>")]
+#[get("/site/<id>")]
 pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<Site>> {
     sqlx::query!("SELECT id, name, note, photo FROM site WHERE id = ?", id)
         .fetch_one(&mut *db)
@@ -52,7 +52,7 @@ pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<Site>> {
         .ok()
 }
 
-#[delete("/<id>")]
+#[delete("/site/<id>")]
 pub async fn delete(mut db: Connection<Db>, id: i64) -> Result<Option<()>> {
     let result = sqlx::query!("DELETE FROM site WHERE id = ?", id)
         .execute(&mut *db)
