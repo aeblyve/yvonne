@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS item_location (
   item_id INTEGER NOT NULL,
   container_id INTEGER NOT NULL,
   quantity INTEGER,
-  location TEXT,
   FOREIGN KEY(item_id) REFERENCES item(id),
   FOREIGN KEY(container_id) REFERENCES container(id)
 )

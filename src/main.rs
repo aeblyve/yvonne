@@ -10,7 +10,6 @@ use rocket::{Build, Rocket};
 mod container;
 mod item;
 mod item_location;
-mod site;
 
 #[cfg(test)]
 mod tests;
@@ -36,7 +35,6 @@ fn rocket() -> _ {
         .attach(Db::init())
         .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
         .mount("/", routes![index])
-        .mount("/", routes![site::create, site::read, site::delete])
         .mount(
             "/",
             routes![container::create, container::read, container::delete],

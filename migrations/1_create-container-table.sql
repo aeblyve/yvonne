@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS container (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  site_id INTEGER NOT NULL,
+  parent_container_id INTEGER,
   name TEXT NOT NULL UNIQUE,
   note TEXT,
   photo BLOB,
-  FOREIGN KEY(site_id) REFERENCES site(id)
+  FOREIGN KEY(parent_container_id) REFERENCES container(id) ON DELETE CASCADE
 );

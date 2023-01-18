@@ -17,7 +17,6 @@ pub struct ItemLocation {
     pub item_id: i64,
     pub container_id: i64,
     pub quantity: Option<i64>,
-    pub location: Option<String>,
 }
 
 /// Create a name item location.
@@ -27,11 +26,10 @@ pub async fn create(
     itemloc: Json<ItemLocation>,
 ) -> Result<Created<Json<ItemLocation>>> {
     sqlx::query!(
-        "INSERT INTO item_location (item_id, container_id, quantity, location) VALUES (?, ?, ?, ?)",
+        "INSERT INTO item_location (item_id, container_id, quantity) VALUES (?, ?, ?)",
         itemloc.item_id,
         itemloc.container_id,
         itemloc.quantity,
-        itemloc.location,
     )
     .execute(&mut *db)
     .await?;
@@ -42,7 +40,7 @@ pub async fn create(
 #[get("/itemloc/<id>")]
 pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<ItemLocation>> {
     sqlx::query!(
-        "SELECT id, item_id, container_id, quantity, location FROM item_location WHERE id = ?",
+        "SELECT id, item_id, container_id, quantity FROM item_location WHERE id = ?",
         id
     )
     .fetch_one(&mut *db)
@@ -52,7 +50,6 @@ pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<ItemLocation>>
             item_id: r.item_id,
             container_id: r.container_id,
             quantity: r.quantity,
-            location: r.location,
         })
     })
     .await
