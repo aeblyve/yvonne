@@ -8,9 +8,6 @@ use rocket::local::blocking::{Client, LocalResponse};
 use rocket::Response;
 use std::io::Cursor;
 
-// TODO check for errors on creating submodels with bad ID
-// TODO create a macro for checking responses
-
 #[test]
 fn test_container() {
     let client = Client::tracked(rocket()).expect("valid rocket instance");
@@ -57,6 +54,14 @@ fn test_container() {
     let response = client.delete("/container/2").dispatch(); // cascade delete should take out container 2
 
     assert_eq!(response.status(), Status::NotFound);
+
+    let response = client
+        .post("/container")
+        .header(ContentType::JSON)
+        .body(r#"{ "parent_container_id": 1, "name": "Breadboarding Bin" }"#)
+        .dispatch(); //parent no longer exists - this should fail
+
+    assert_eq!(response.status(), Status::InternalServerError)
 }
 
 #[test]
