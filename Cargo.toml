@@ -7,6 +7,8 @@ edition = "2021"
 
 [dependencies]
 rocket = {version = "0.5.0-rc.2", features = ["json"]}
+qrcode = "0.11"
+genpdf = "0.2.0"
 
 [dependencies.sqlx]
 version = "0.5.1"

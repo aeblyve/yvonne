@@ -6,6 +6,9 @@ use rocket_db_pools::Database;
 
 use rocket::fairing::{self, AdHoc};
 use rocket::{Build, Rocket};
+use rocket::State;
+
+use genpdf::Document;
 
 mod container;
 mod item;
@@ -24,6 +27,12 @@ pub struct Db(sqlx::SqlitePool);
 #[database("db")]
 pub struct Db(sqlx::SqlitePool);
 
+
+pub struct AppState {
+    pub root_url: String,
+    pub pdf: Vec<u8>
+}
+
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
@@ -31,9 +40,16 @@ fn index() -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
+
+    let state = AppState {
+        root_url: String::from("foobar.com"),
+        pdf: [1, 2, 3, 4].to_vec()
+    };
+
     rocket::build()
         .attach(Db::init())
         .attach(AdHoc::try_on_ignite("SQLx Migrations", run_migrations))
+        .manage(state)
         .mount("/", routes![index])
         .mount(
             "/",

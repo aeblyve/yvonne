@@ -1,8 +1,12 @@
-use crate::rocket::futures::TryFutureExt;
+use crate::rocket::futures::{TryFutureExt, TryStreamExt};
+use rocket::http::ContentType;
 use rocket_db_pools::sqlx::{self, Row};
 use rocket_db_pools::Connection;
+use rocket::State;
 
 use crate::Db;
+use crate::AppState;
+
 use rocket::response::status::Created;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 
@@ -62,6 +66,18 @@ pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<Container>> {
     .ok()
 }
 
+#[get("/container")]
+pub async fn list(mut db: Connection<Db>) -> Result<Json<Vec<i64>>> {
+    let ids = sqlx::query!("SELECT id FROM container")
+        .fetch(&mut *db)
+        .map_ok(|r| r.id.unwrap())
+        .try_collect::<Vec<_>>()
+        .await?;
+
+    Ok(Json(ids))
+}
+
+
 #[delete("/container/<id>")]
 pub async fn delete(mut db: Connection<Db>, id: i64) -> Result<Option<()>> {
     let result = sqlx::query!("DELETE FROM container WHERE id = ?", id) // container has ON DELETE CASCADE
@@ -69,4 +85,25 @@ pub async fn delete(mut db: Connection<Db>, id: i64) -> Result<Option<()>> {
         .await?;
 
     Ok((result.rows_affected() == 1).then(|| ()))
+}
+
+/// Generate a PDF containing QR coded labels for each container
+async fn generate_qr_pdf(state: &State<AppState>, mut db:Connection<Db>) -> Result<()> {
+    let containers = sqlx::query!("SELECT id, name FROM container")
+        .fetch(&mut *db)
+        .map_ok(|r| (r.id.unwrap(), r.name))
+        .try_collect::<Vec<_>>()
+        .await?;
+
+    for (id, name) in containers {
+        // TODO
+    }
+
+    Ok(())
+}
+
+/// Get a pdf containing printable qr coded labels for all containers
+#[get("/container/qr")]
+pub async fn read_qr_pdf(state: &State<AppState>) -> (ContentType, Vec<u8>) {
+    (ContentType::PDF, state.pdf.clone())
 }
