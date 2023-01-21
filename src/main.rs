@@ -14,6 +14,8 @@ mod container;
 mod item;
 mod item_location;
 
+const QR_CODE_DIMENSION: usize = 150;
+
 #[cfg(test)]
 mod tests;
 
@@ -42,7 +44,7 @@ fn index() -> &'static str {
 fn rocket() -> _ {
 
     let state = AppState {
-        root_url: String::from("foobar.com"),
+        root_url: String::from("http://foobar.com"),
         pdf: [1, 2, 3, 4].to_vec()
     };
 
@@ -53,7 +55,7 @@ fn rocket() -> _ {
         .mount("/", routes![index])
         .mount(
             "/",
-            routes![container::create, container::read, container::delete],
+            routes![container::create, container::read, container::delete, container::read_qr],
         )
         .mount("/", routes![item::create, item::read, item::delete])
         .mount(

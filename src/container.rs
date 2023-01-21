@@ -1,4 +1,5 @@
 use crate::rocket::futures::{TryFutureExt, TryStreamExt};
+use std::io::Cursor;
 use rocket::http::ContentType;
 use rocket_db_pools::sqlx::{self, Row};
 use rocket_db_pools::Connection;
@@ -7,8 +8,33 @@ use rocket::State;
 use crate::Db;
 use crate::AppState;
 
+use lazy_static::lazy_static;
+
 use rocket::response::status::Created;
 use rocket::serde::{json::Json, Deserialize, Serialize};
+
+use image::Luma;
+use image::ImageBuffer;
+use image::{GrayImage};
+
+use imageproc::drawing::draw_text;
+
+use qrcode_generator::{QrCodeEcc, QRCodeError};
+
+use rusttype::{Font, Scale};
+
+lazy_static! {
+    static ref FONT: Font<'static> = {
+        let font_data: &[u8] = include_bytes!("../assets/iosevka-regular.ttf");
+        Font::try_from_bytes(font_data).expect("Decoded font okay")
+    };
+}
+
+
+
+
+
+use crate::QR_CODE_DIMENSION;
 
 type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
 
@@ -66,6 +92,21 @@ pub async fn read(mut db: Connection<Db>, id: i64) -> Option<Json<Container>> {
     .ok()
 }
 
+#[get("/container/qr/<id>")]
+pub async fn read_qr(mut db: Connection<Db>, state: &State<AppState>, id:i64) -> (ContentType, Vec<u8>) {
+    let foo = sqlx::query!(
+        "SELECT id, name FROM container WHERE id = ?",
+        id
+    )
+    .fetch_one(&mut *db)
+    .map_ok(|r| {
+        generate_container_qr_label(state, r.id, r.name)
+    }).await.expect("Got image okay");
+    let mut bytes: Vec<u8> = Vec::new();
+    foo.write_to(&mut Cursor::new(&mut bytes), image::ImageOutputFormat::Png).expect("Saved as PNG okay");
+    (ContentType::PNG, bytes)
+}
+
 #[get("/container")]
 pub async fn list(mut db: Connection<Db>) -> Result<Json<Vec<i64>>> {
     let ids = sqlx::query!("SELECT id FROM container")
@@ -96,10 +137,23 @@ async fn generate_qr_pdf(state: &State<AppState>, mut db:Connection<Db>) -> Resu
         .await?;
 
     for (id, name) in containers {
-        // TODO
     }
 
     Ok(())
+}
+
+fn generate_container_qr_code(state: &State<AppState>, id: i64) -> Result<ImageBuffer<Luma<u8>, Vec<u8>>, QRCodeError> {
+    let url = format!("{}/container/{}", state.root_url, id);
+    qrcode_generator::to_image_buffer(url, QrCodeEcc::Low, QR_CODE_DIMENSION)
+}
+
+fn generate_container_qr_label(state: &State<AppState>, id: i64, name: String) -> ImageBuffer<Luma<u8>, Vec<u8>> {
+    let mut code = generate_container_qr_code(state, id).unwrap(); // make space on the left for X chars, limit names to X chars, imageproc::drawing imageops overlay
+    let mut label = GrayImage::new((QR_CODE_DIMENSION * 2) as u32, QR_CODE_DIMENSION as u32); // make this a white background?
+
+    image::imageops::overlay(&mut label, &code, QR_CODE_DIMENSION as i64, 0);
+
+    draw_text(&mut label, Luma { 0: [255] }, 0, 0, Scale { x: 100.0, y: 100.0 }, &FONT, name.as_str())
 }
 
 /// Get a pdf containing printable qr coded labels for all containers
