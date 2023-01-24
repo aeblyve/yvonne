@@ -35,6 +35,12 @@ pub struct AppState {
     pub pdf: Vec<u8>
 }
 
+impl AppState {
+    pub fn set_pdf(&mut self, pdf: Vec<u8>) {
+        self.pdf = pdf;
+    }
+}
+
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
@@ -55,7 +61,7 @@ fn rocket() -> _ {
         .mount("/", routes![index])
         .mount(
             "/",
-            routes![container::create, container::read, container::delete, container::read_qr],
+            routes![container::create, container::read, container::delete, container::read_qr, container::list_qr, container::list],
         )
         .mount("/", routes![item::create, item::read, item::delete])
         .mount(
