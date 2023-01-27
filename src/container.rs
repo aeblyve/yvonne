@@ -156,12 +156,13 @@ async fn generate_qr_pdf(state: &State<AppState>, mut db:Connection<Db>) -> Vec<
         .try_collect::<Vec<_>>()
         .await.unwrap();
 
-    let (doc, page1, layer1) = PdfDocument::new("PDF_Document_title", Mm(247.0), Mm(210.0), "Layer 1");
+    let (doc, page1, layer1) = PdfDocument::new("PDF_Document_title", Mm(210.0), Mm(297.0), "Layer 1");
     let current_layer = doc.get_page(page1).get_layer(layer1);
 
-    let mut imx = Mm(0.0);
-    let mut imy = Mm(0.0);
+    let mut imx = Mm(1.36);
+    let mut imy = Mm(270.0);
 
+    let mut count = 0;
     for (id, name) in containers {
         let label = generate_container_qr_label(state, id, name);
         let img = Image::from_dynamic_image(&label.into());
@@ -174,7 +175,14 @@ async fn generate_qr_pdf(state: &State<AppState>, mut db:Connection<Db>) -> Vec<
             dpi : Some(300.0)
         };
         img.add_to_layer(current_layer.clone(), transform); // change transform as we go
-        imx += Mm(50.0);
+        imx += Mm(50.8);
+        imx += Mm(1.36);
+        count += 1;
+        if count % 4 == 0 {
+            imy -= Mm(25.4);
+            imy -= Mm(1.47);
+            imx = Mm(1.36);
+        }
     }
 
     doc.save_to_bytes().unwrap()
@@ -191,7 +199,7 @@ fn generate_container_qr_label(state: &State<AppState>, id: i64, name: String) -
 
     printpdf::image_crate::imageops::overlay(&mut label, &code, QR_CODE_DIMENSION as i64, 0);
 
-    let x_scale = 3.0 / name.len() as f32 * 125.0;
+    let x_scale = 6.0 / name.len() as f32 * 125.0;
 
     draw_text(&mut label, Luma { 0: [255] }, 0, 0, Scale { x: x_scale, y: 125.0 }, &FONT, name.as_str())
 }

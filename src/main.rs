@@ -14,7 +14,7 @@ mod container;
 mod item;
 mod item_location;
 
-const QR_CODE_DIMENSION: usize = 150;
+const QR_CODE_DIMENSION: usize = 300;
 
 #[cfg(test)]
 mod tests;
