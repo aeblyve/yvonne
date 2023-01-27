@@ -160,7 +160,7 @@ async fn generate_qr_pdf(state: &State<AppState>, mut db:Connection<Db>) -> Vec<
     let current_layer = doc.get_page(page1).get_layer(layer1);
 
     let mut imx = Mm(0.76);
-    let mut imy = Mm(260.0);
+    let mut imy = Mm(297.0 - 32.0);
 
     let mut count = 0;
     for (id, name) in containers {
@@ -174,12 +174,16 @@ async fn generate_qr_pdf(state: &State<AppState>, mut db:Connection<Db>) -> Vec<
             scale_y : None,
             dpi : Some(300.0)
         };
-        img.add_to_layer(current_layer.clone(), transform); // change transform as we go
+        img.add_to_layer(current_layer.clone(), transform);
+
         imx += Mm(25.4);
         imx += Mm(0.76);
+
         count += 1;
         if count % 8 == 0 {
             imy -= Mm(32.0);
+            imy -= Mm(1.11);
+
             imx = Mm(0.76);
         }
     }
