@@ -35,20 +35,6 @@ use printpdf::image_crate::ImageOutputFormat;
 use printpdf::image_crate::Luma;
 use printpdf::image_crate::ImageBuffer;
 use printpdf::image_crate::{GrayImage};
-
-
-
-lazy_static! {
-    static ref FONT: Font<'static> = {
-        let font_data: &[u8] = include_bytes!("../assets/iosevka-regular.ttf");
-        Font::try_from_bytes(font_data).expect("Decoded font okay")
-    };
-}
-
-
-
-
-
 use crate::QR_CODE_DIMENSION;
 
 type Result<T, E = rocket::response::Debug<sqlx::Error>> = std::result::Result<T, E>;
@@ -115,7 +101,8 @@ pub async fn read_qr(mut db: Connection<Db>, state: &State<AppState>, id:i64) ->
     )
     .fetch_one(&mut *db)
     .map_ok(|r| {
-        generate_container_qr_label(state, r.id, r.name)
+        //generate_container_qr_label(state, r.id, r.name)
+        crate::util::generate_qr_label(state, r.id, r.name, "container")
     }).await.expect("Got image okay");
     let mut bytes: Vec<u8> = Vec::new();
     foo.write_to(&mut Cursor::new(&mut bytes), ImageOutputFormat::Png).expect("Saved as PNG okay");
@@ -145,70 +132,10 @@ pub async fn delete(mut db: Connection<Db>, id: i64) -> Result<Option<()>> {
 
 #[get("/container/qr")]
 pub async fn list_qr(state: &State<AppState>, mut db: Connection<Db>) -> (ContentType, Vec<u8>) {
-    (ContentType::PDF, generate_qr_pdf(state, db).await)
-}
-
-/// Generate a PDF containing QR coded labels for each container
-async fn generate_qr_pdf(state: &State<AppState>, mut db:Connection<Db>) -> Vec<u8> {
     let containers = sqlx::query!("SELECT id, name FROM container")
         .fetch(&mut *db)
         .map_ok(|r| (r.id.unwrap(), r.name))
         .try_collect::<Vec<_>>()
         .await.unwrap();
-
-    let (doc, page1, layer1) = PdfDocument::new("PDF_Document_title", Mm(210.0), Mm(297.0), "Layer 1");
-    let current_layer = doc.get_page(page1).get_layer(layer1);
-
-    let mut imx = Mm(0.76);
-    let mut imy = Mm(297.0 - 32.0);
-
-    let mut count = 0;
-    for (id, name) in containers {
-        let label = generate_container_qr_label(state, id, name);
-        let img = Image::from_dynamic_image(&label.into());
-        let transform = ImageTransform {
-            translate_x : Some(imx),
-            translate_y : Some(imy),
-            rotate : None,
-            scale_x : None,
-            scale_y : None,
-            dpi : Some(300.0)
-        };
-        img.add_to_layer(current_layer.clone(), transform);
-
-        imx += Mm(25.4);
-        imx += Mm(0.76);
-
-        count += 1;
-        if count % 8 == 0 {
-            imy -= Mm(32.0);
-            imy -= Mm(1.11);
-
-            imx = Mm(0.76);
-        }
-    }
-
-    doc.save_to_bytes().unwrap()
-}
-
-fn generate_container_qr_code(state: &State<AppState>, id: i64) -> Result<ImageBuffer<Luma<u8>, Vec<u8>>, QRCodeError> {
-    let url = format!("{}/container/{}", state.root_url, id);
-    qrcode_generator::to_image_buffer(url, QrCodeEcc::Low, QR_CODE_DIMENSION)
-}
-
-fn generate_container_qr_label(state: &State<AppState>, id: i64, name: String) -> ImageBuffer<Luma<u8>, Vec<u8>> {
-    let mut code = generate_container_qr_code(state, id).unwrap(); // make space on the left for X chars, limit names to X chars, imageproc::drawing imageops overlay
-    let mut label = GrayImage::new((QR_CODE_DIMENSION) as u32, (QR_CODE_DIMENSION as f32 * 1.25) as u32); // make this a white background?
-
-    printpdf::image_crate::imageops::overlay(&mut label, &code, 0, 0);
-
-    let x_scale = 6.0 / name.len() as f32 * 125.0;
-
-    draw_text(&mut label, Luma { 0: [255] }, 0, QR_CODE_DIMENSION as i32 - 5, Scale { x: 84.0, y: 84.0 }, &FONT, name.as_str())
-}
-
-/// Get a pdf containing printable qr coded labels for all containers
-#[get("/container/qr")]
-pub async fn read_qr_pdf(state: &State<AppState>) -> (ContentType, Vec<u8>) {
-    (ContentType::PDF, state.pdf.clone())
+    (ContentType::PDF, crate::util::generate_qr_pdf(state, containers, "container"))
 }

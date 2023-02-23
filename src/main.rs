@@ -13,6 +13,7 @@ use genpdf::Document;
 mod container;
 mod item;
 mod item_location;
+mod util;
 
 const QR_CODE_DIMENSION: usize = 300;
 
@@ -63,7 +64,7 @@ fn rocket() -> _ {
             "/",
             routes![container::create, container::read, container::delete, container::read_qr, container::list_qr, container::list],
         )
-        .mount("/", routes![item::create, item::read, item::delete])
+        .mount("/", routes![item::create, item::read, item::delete, item::read_qr, item::list_qr, item::list])
         .mount(
             "/",
             routes![
