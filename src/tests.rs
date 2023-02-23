@@ -43,6 +43,15 @@ fn test_container() {
     assert_eq!(container.note, None);
     assert_eq!(container.photo, None);
 
+    let response = client.put("/container/1").header(ContentType::JSON).body(r#"{ "parent_container_id": 1, "name": "1000 Washington Street", "note": "foobar", "photo": null}"#).dispatch();
+
+    // TODO may change later
+    assert_eq!(response.status(), Status::Created);
+
+    let response = client.get("/container/1").dispatch();
+    let container: Container = response.into_json().expect("Valid response");
+    assert_eq!(container.note, Some("foobar".to_string()));
+
     let response = client.delete("/container/1").dispatch();
 
     assert_eq!(response.status(), Status::Ok);

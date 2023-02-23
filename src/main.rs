@@ -30,16 +30,8 @@ pub struct Db(sqlx::SqlitePool);
 #[database("db")]
 pub struct Db(sqlx::SqlitePool);
 
-
 pub struct AppState {
     pub root_url: String,
-    pub pdf: Vec<u8>
-}
-
-impl AppState {
-    pub fn set_pdf(&mut self, pdf: Vec<u8>) {
-        self.pdf = pdf;
-    }
 }
 
 #[get("/")]
@@ -51,8 +43,7 @@ fn index() -> &'static str {
 fn rocket() -> _ {
 
     let state = AppState {
-        root_url: String::from("http://foobar.com"),
-        pdf: [1, 2, 3, 4].to_vec()
+        root_url: String::from("http://foobar.com"), // have to set this in prod
     };
 
     rocket::build()
@@ -62,9 +53,9 @@ fn rocket() -> _ {
         .mount("/", routes![index])
         .mount(
             "/",
-            routes![container::create, container::read, container::delete, container::read_qr, container::list_qr, container::list],
+            routes![container::create, container::read, container::delete, container::read_qr, container::list_qr, container::list, container::full_update],
         )
-        .mount("/", routes![item::create, item::read, item::delete, item::read_qr, item::list_qr, item::list])
+        .mount("/", routes![item::create, item::read, item::delete, item::read_qr, item::list_qr, item::list, item::full_update])
         .mount(
             "/",
             routes![

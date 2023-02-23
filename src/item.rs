@@ -52,6 +52,15 @@ pub struct Item {
     pub photo: Option<Vec<u8>>,
 }
 
+/// An item type - not an individual item. e.g. M3 bolt, 20mm long
+#[derive(Debug, Clone, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct PutItem {
+    pub name: String,
+    pub note: Option<String>,
+    pub photo: Option<Vec<u8>>,
+}
+
 #[post("/item", data = "<item>")]
 pub async fn create(mut db: Connection<Db>, item: Json<Item>) -> Result<Created<Json<Item>>> {
     sqlx::query!(
@@ -96,6 +105,25 @@ pub async fn read_qr(mut db: Connection<Db>, state: &State<AppState>, id:i64) ->
     let mut bytes: Vec<u8> = Vec::new();
     foo.write_to(&mut Cursor::new(&mut bytes), ImageOutputFormat::Png).expect("Saved as PNG okay");
     (ContentType::PNG, bytes)
+}
+
+#[put("/item/<id>", data = "<item>")]
+pub async fn full_update(
+    mut db: Connection<Db>,
+    id: i64,
+    item: Json<PutItem>,
+) -> Result<Created<Json<Item>>> {
+    sqlx::query!(
+        "UPDATE item SET name=?, note=?, photo=? WHERE id = ?",
+        item.name,
+        item.note,
+        item.photo,
+        id
+    )
+    .execute(&mut *db)
+    .await?;
+
+    Ok(Created::new("/")) // TODO revisit this return
 }
 
 #[delete("/item/<id>")]
