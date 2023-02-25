@@ -5,8 +5,8 @@ use rocket_db_pools::sqlx::{self};
 use rocket_db_pools::Database;
 
 use rocket::fairing::{self, AdHoc};
-use rocket::{Build, Rocket};
 use rocket::State;
+use rocket::{Build, Rocket};
 
 use genpdf::Document;
 
@@ -41,7 +41,6 @@ fn index() -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
-
     let state = AppState {
         root_url: String::from("http://foobar.com"), // have to set this in prod
     };
@@ -53,9 +52,28 @@ fn rocket() -> _ {
         .mount("/", routes![index])
         .mount(
             "/",
-            routes![container::create, container::read, container::delete, container::read_qr, container::list_qr, container::list, container::full_update],
+            routes![
+                container::create,
+                container::read,
+                container::delete,
+                container::read_qr,
+                container::list_qr,
+                container::list,
+                container::full_update
+            ],
         )
-        .mount("/", routes![item::create, item::read, item::delete, item::read_qr, item::list_qr, item::list, item::full_update])
+        .mount(
+            "/",
+            routes![
+                item::create,
+                item::read,
+                item::delete,
+                item::read_qr,
+                item::list_qr,
+                item::list,
+                item::full_update
+            ],
+        )
         .mount(
             "/",
             routes![

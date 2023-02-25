@@ -1,2 +1,2 @@
-/target
-/db/db.sqlite*
+/backend/target
+/backend/db/db.sqlite*
